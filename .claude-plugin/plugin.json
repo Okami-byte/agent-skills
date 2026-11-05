@@ -1,0 +1,11 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "dev",
+  "version": "0.1.0",
+  "description": "Personal engineering toolkit: senior-engineer workflows for Python backend, ML/AI, DevOps and cloud work, in coach mode.",
+  "author": {
+    "name": "Okami",
+    "email": "49962728+Okami-byte@users.noreply.github.com"
+  },
+  "skills": "./skills/"
+}

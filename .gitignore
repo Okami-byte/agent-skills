@@ -1,0 +1,83 @@
+# .gitignore for the dev plugin
+#
+# Rule of thumb: commit what a person wrote and needs to rebuild the project.
+# Ignore anything a tool generates, anything specific to one machine, and
+# anything secret. Each section says why it's here.
+
+# --- Secrets -------------------------------------------------------------
+# These should never reach a remote. If one ever does, rotate it first, then
+# purge it from history. Removing the file in a later commit doesn't help,
+# because history keeps it.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*.tfvars
+!*.tfvars.example
+.netrc
+credentials*.json
+secrets.*
+
+# --- Python --------------------------------------------------------------
+# Bytecode and build output are regenerated on every run. Committing them
+# causes noisy diffs and merge conflicts.
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# --- Tool caches ---------------------------------------------------------
+# Linters, type checkers and test runners keep local caches to speed up the
+# next run. They belong to one machine, not to the project.
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# --- Infrastructure ------------------------------------------------------
+# Terraform state can contain secrets in plain text and must live in a
+# remote backend, never in git. .terraform/ holds downloaded providers.
+# Do commit .terraform.lock.hcl: it pins provider versions, the same way a
+# Python lock file pins packages.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# --- Claude Code: local and per-user files ------------------------------
+# settings.local.json holds personal permission overrides. Skill eval runs
+# create large throwaway workspaces.
+.claude/settings.local.json
+*-workspace/
+evals/**/runs/
+
+# --- Logs and scratch ----------------------------------------------------
+*.log
+*.tmp
+tmp/
+scratch/
+
+# --- OS and editor clutter ----------------------------------------------
+# Files your OS or editor creates. Many engineers put these in a global
+# gitignore (git config --global core.excludesFile) instead, since they
+# aren't about this project. Listing them here also protects contributors
+# who haven't set that up.
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/*
+!.vscode/extensions.json
