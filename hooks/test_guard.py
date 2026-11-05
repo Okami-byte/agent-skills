@@ -70,7 +70,19 @@ def test_safe_commands_pass():
     assert not flagged, f"wrongly flagged: {flagged}"
 
 
+def test_unattended_modes_deny():
+    for mode in ("auto", "bypassPermissions", "dontAsk"):
+        assert guard.decide(mode, ["x"])[0] == "deny", mode
+
+
+def test_attended_modes_ask():
+    for mode in ("default", "acceptEdits", "plan", ""):
+        assert guard.decide(mode, ["x"])[0] == "ask", mode
+
+
 if __name__ == "__main__":
     test_dangerous_commands_are_flagged()
     test_safe_commands_pass()
+    test_unattended_modes_deny()
+    test_attended_modes_ask()
     print("all guard tests passed")
