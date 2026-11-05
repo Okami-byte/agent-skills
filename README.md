@@ -39,9 +39,9 @@ Everything here builds on 12 principles that the three projects under [Inspirati
 | `/dev:grill` | ✅ | Asks one question at a time, each with a recommended answer and the reasoning, until a plan is clear. |
 | `/dev:debug` | ✅ | Reproduce-first debugging for Python, services, containers, Linux hosts, DNS/TLS and Terraform. |
 | `/dev:ship` | ✅ | A change gate (blast radius, door type, rollback plan), then commit → PR → review → merge, then optional deploy and check. |
-| `/dev:spec` | 🛠 planned | Turns a grilling session into a short spec. |
-| `/dev:plan` | 🛠 planned | Breaks a spec into small tasks you can check one at a time. |
-| `/dev:build` | 🛠 planned | Implements one slice at a time and proves each step works. |
+| `/dev:spec` | ✅ | Requirements, an architecture diagram, decisions and security, written to a short `SPEC.md` you approve before any code is written. |
+| `/dev:plan` | ✅ | Breaks the spec into thin slices, each with acceptance criteria, a check command, a size tag and a dependency order. Planned on Opus. |
+| `/dev:build` | ✅ | One slice at a time: implement, check, commit. A manager agent hands small tasks to a cheaper model. Tests every interface at the end. |
 | `/dev:test` | 🛠 planned | Testing in any language, Python first. |
 | `/dev:review` | 🛠 planned | Two-axis review: follows the standards, and matches the spec. |
 | `/dev:simplify` | 🛠 planned | Behavior-preserving cleanup to Python, Terraform, Bash and Compose style standards. |
