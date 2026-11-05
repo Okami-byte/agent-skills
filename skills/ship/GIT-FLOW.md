@@ -15,6 +15,31 @@ Work is split across three model tiers. Spawn each with the Agent tool and the
 The main conversation is only the relay: it spawns the agents, passes their
 output along, tracks time, and talks to the user. It makes no git decisions itself.
 
+### Tier shortcuts (save tokens without losing a gate)
+
+- If the main conversation already runs on **Opus**, do the Opus steps (plan,
+  pre-push review, PR review, final report) inline. Spawning another Opus agent
+  only adds a cold start.
+- A Haiku step that is a single read-only batch of commands (recon, safety
+  scan) can run as a direct Bash call. Spawn Haiku only for jobs that need
+  reading and summarizing.
+- Shortcuts never skip a gate. Every review, safety check, attribution check
+  and the user's merge approval still happens. Say which steps ran inline.
+
+### Repos that are a live plugin or skills folder
+
+Some repos are loaded by Claude Code straight from their main checkout, like
+`~/.claude/skills/dev`. Editing there changes the live tools immediately.
+
+- **Preferred:** create the branch worktree first and make the edits *in the
+  worktree*. After the merge, the live checkout fast-forwards cleanly with
+  `git pull --ff-only`.
+- **If edits already exist in the live folder:** copy them into the worktree
+  with `command cp -f` (aliases may be interactive), and confirm with
+  `diff -rq --exclude=.git <live> <worktree>`. After the merge, check that
+  `git diff origin/main` is empty (use `git add -N .` so untracked files
+  count), then `git stash -u`, `git pull --ff-only`, `git stash drop`.
+
 ## Hard rules
 
 1. **Always attribute AI-made work.** The user wants to be able to tell at a glance
@@ -78,6 +103,8 @@ Before any commit, spawn a `haiku` agent to verify:
 - The branch is not behind its remote in a way a push would overwrite
   (`git fetch` then compare); nothing here requires a force push.
 - No unexpectedly large files.
+- The repo's own checks pass: if it has `scripts/check.sh` (or a `make check`,
+  `just check`, or pre-commit config), run it. A failing repo check is a problem.
 Return PASS or a list of problems. Any problem goes back to Opus to decide.
 
 ### 4. Commit (Sonnet, with Haiku messages)
