@@ -16,7 +16,7 @@ The user is learning to work like a senior engineer. At each decision that matte
 
 ## The principles
 
-1. **Prove it works.** "It should work", a green CI run and "it compiles" are not proof. Check the real thing: hit the endpoint, read the value on the host, run the container, look at the `terraform plan`. Say how you checked.
+1. **Prove it works.** "It should work", a green CI run and "it compiles" are not proof. Check the real thing: hit the endpoint, read the value on the host, run the container, look at the `terraform plan`. Say how you checked. **Re-check before you report state:** files, branches and remotes change while you're not looking, so run the command again instead of repeating an earlier observation.
 2. **Reproduce before you fix.** First get one command that fails on the bug. A fix counts only when that same command passes.
 3. **Make small, reversible steps.** Keep each change small enough to undo and to check on its own. Order commits so each one leaves the system working.
 4. **Idempotency.** Ask three questions of every script, playbook, migration and deploy: what if it runs twice, what if it crashes halfway, and does running it again end in the same state?

@@ -68,8 +68,18 @@ It catches these and more:
 - piping a download into a shell (`curl … | sh`)
 
 ```bash
-python3 hooks/test_guard.py   # 31 dangerous + 13 safe commands, and the decision for each permission mode
+python3 hooks/test_guard.py   # dangerous, safe, inert-text and live-text cases, plus per-mode decisions
 ```
+
+Every flagged command is checked after removing text that can't run: commit messages, PR bodies, and heredocs written to a file. So a PR that *mentions* a destructive command isn't blocked, while the same command inside `bash -c`, `ssh host "…"` or `$(…)` still is.
+
+## Checks
+
+```bash
+scripts/check.sh   # guard tests, gitignored-file check, frontmatter, claude plugin validate
+```
+
+CI runs the same script, plus `shellcheck`, on every push and PR.
 
 ## Install
 
@@ -88,6 +98,7 @@ Then run `/reload-plugins`, or start a new session, and type `/dev:` to see the 
 skills/<name>/SKILL.md       one folder per command; extra detail sits in sibling files
                              that load only when needed (e.g. ship/GIT-FLOW.md)
 hooks/                       guard.py, its tests, and hooks.json wiring
+scripts/check.sh             one check script used locally and by CI (.github/workflows/ci.yml)
 agents/                      issue-manager (runs a plan, Sonnet) and quick-task (small jobs, Haiku), used by /dev:build
 ```
 
