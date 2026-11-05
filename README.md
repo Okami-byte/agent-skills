@@ -42,15 +42,20 @@ Everything here builds on 12 principles that the three projects under [Inspirati
 | `/dev:spec` | ✅ | Requirements, an architecture diagram, decisions and security, written to a short `SPEC.md` you approve before any code is written. |
 | `/dev:plan` | ✅ | Breaks the spec into thin slices, each with acceptance criteria, a check command, a size tag and a dependency order. Planned on Opus. |
 | `/dev:build` | ✅ | One slice at a time: implement, check, commit. A manager agent hands small tasks to a cheaper model. Tests every interface at the end. |
-| `/dev:test` | 🛠 planned | Testing in any language, Python first. |
-| `/dev:review` | 🛠 planned | Two-axis review: follows the standards, and matches the spec. |
-| `/dev:simplify` | 🛠 planned | Behavior-preserving cleanup to Python, Terraform, Bash and Compose style standards. |
-| `/dev:retro` | 🛠 planned | Turns a session's mistakes into checks or skill fixes. |
-| `/dev:handoff` | 🛠 planned | Packages a session for a fresh agent to continue. |
+| `/dev:test` | ✅ | Tests that check behavior: pick a strategy, prove a bug with a failing test before fixing it, run idempotency checks for infrastructure. Python, pytest and ML specifics are in `PYTHON.md`. |
+| `/dev:review` | ✅ | Spec axis (does it do what was asked) and standards axis (repo rules, principles, security, infrastructure), plus the built-in `/code-review` for bugs. Severity-labeled findings, each with a reason. |
+| `/dev:simplify` | ✅ | Pin current behavior, run the formatters and linters, then simplify in small checked steps. Style standards for Python, Terraform, Bash, Compose and Dockerfiles are in `STYLE.md`. |
+| `/dev:retro` | ✅ | Turns a session's mistakes into checks, skill edits, CLAUDE.md lines or memory, each applied only after you approve it. |
+| `/dev:handoff` | ✅ | A short handoff document (goal, state, decisions, next steps, gotchas) with references instead of copies, plus a one-line prompt to resume. |
 
 ## Safety hook
 
-[`hooks/guard.py`](hooks/guard.py) runs before every shell command the agent tries. If the command looks destructive, Claude Code stops and asks you first. It asks; it never blocks outright.
+[`hooks/guard.py`](hooks/guard.py) runs before every shell command the agent tries. If the command looks destructive, then:
+
+- in normal mode, Claude Code stops and asks you first.
+- in unattended modes (auto, bypass), the command is **blocked**, and the agent has to hand it to you to run yourself with `! <command>`.
+
+Every flagged command is logged to `~/.claude/logs/dev-guard.tsv`, so you can review what agents tried.
 
 It catches these and more:
 - force pushes and `git reset --hard`
@@ -63,7 +68,7 @@ It catches these and more:
 - piping a download into a shell (`curl … | sh`)
 
 ```bash
-python3 hooks/test_guard.py   # 31 dangerous and 13 safe commands
+python3 hooks/test_guard.py   # 31 dangerous + 13 safe commands, and the decision for each permission mode
 ```
 
 ## Install
@@ -83,6 +88,7 @@ Then run `/reload-plugins`, or start a new session, and type `/dev:` to see the 
 skills/<name>/SKILL.md       one folder per command; extra detail sits in sibling files
                              that load only when needed (e.g. ship/GIT-FLOW.md)
 hooks/                       guard.py, its tests, and hooks.json wiring
+agents/                      issue-manager (runs a plan, Sonnet) and quick-task (small jobs, Haiku), used by /dev:build
 ```
 
 ## Design rules

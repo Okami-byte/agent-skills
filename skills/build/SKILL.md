@@ -1,6 +1,6 @@
 ---
 name: build
-description: Work through a plan one slice at a time. Implement each slice, prove it with its check, commit it, then move on. Medium and large tasks go to the issue-manager agent and small ones to quick-task. Secure defaults and explanatory comments are included, and every endpoint is tested at the end. Use when a plan exists (PLAN.md, an issue or a task list) and it's time to execute.
+description: Work through a plan one slice at a time. Implement each slice, prove it with its check, commit it, then move on. Medium and large tasks go to the dev:issue-manager agent and small ones to dev:quick-task. Secure defaults and explanatory comments are included, and every endpoint is tested at the end. Use when a plan exists (PLAN.md, an issue or a task list) and it's time to execute.
 disable-model-invocation: true
 argument-hint: "[plan path or task number]"
 ---
@@ -11,13 +11,13 @@ Turn the plan into working, proven code one slice at a time. Coach mode applies 
 
 ## 1. Hand off to the manager
 
-Spawn the `issue-manager` agent with one self-contained prompt. It has no memory of this conversation. Include:
+Spawn the `dev:issue-manager` agent with one self-contained prompt. It has no memory of this conversation. Include:
 
 - the plan word for word (each task with its size, Done when, Check and dependencies)
 - file paths, repo context and constraints from the spec
 - the standards in step 2 below
 
-The manager sequences the work, does the medium and large tasks itself, and sends each small task to `quick-task`. Run it in the foreground if the next step depends on it.
+The manager sequences the work, does the medium and large tasks itself, and sends each small task to `dev:quick-task`. Run it in the foreground if the next step depends on it.
 
 If there's no plan yet, stop and suggest `/dev:plan`. Building without a plan is how scope creeps.
 
