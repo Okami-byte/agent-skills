@@ -20,7 +20,7 @@ RULES: list[tuple[str, str]] = [
     # Filesystem
     (
         "recursive delete of a broad path",
-        r"\brm\s+(-[a-z]*r[a-z]*|--recursive)\b[^;&|]*\s(/|~|\$home|\.|\.\.|\*|/[^/\s]+/?)(\s|$|;|&|\|)",
+        r"\brm\s+(-[a-z]*r[a-z]*|--recursive)\b[^;&|]*\s(/|~|\$home|\.|\.\.|\*|/[^/\s]+/?)(\s|$|;|&|\||\)|\"|')",
     ),
     ("raw disk write or format", r"\b(dd\s+[^;&|]*of=/dev/|mkfs(\.\w+)?\s|wipefs\s)"),
     (
@@ -70,9 +70,70 @@ RULES: list[tuple[str, str]] = [
 COMPILED = [(reason, re.compile(rx, re.IGNORECASE)) for reason, rx in RULES]
 
 
+# --- Inert text --------------------------------------------------------------
+# Commit messages, PR bodies and heredocs written to a file are text, not
+# commands, so a PR that *mentions* "terraform destroy" shouldn't be blocked.
+# Text is removed only when it provably can't run:
+#   - no command substitution: $(...) and backticks still execute inside
+#     double quotes and unquoted heredocs
+#   - heredocs only when they feed cat/tee and aren't piped onward
+#     (`cat <<EOF | sh` runs its body)
+# Dangerous commands inside quotes that do run (`bash -c "…"`, `ssh host "…"`)
+# are deliberately left alone, so they're still caught.
+
+_SUBST = re.compile(r"\$\(|`")
+_HEREDOC = re.compile(r"<<(-?)[ \t]*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\2")
+_WRITER = re.compile(r"(?:^|[;&|(])\s*(?:sudo\s+)?(?:cat|tee)\b[^;&|]*$")
+_MSG_CMD = re.compile(r"\b(?:git\s+(?:commit|tag)|gh\s+(?:pr|issue|release))\b")
+_MSG_ARG = re.compile(
+    r"""(\s(?:-m|--message|-t|--title|-b|--body|--notes)(?:\s+|=))('[^']*'|"(?:[^"\\]|\\.)*")"""
+)
+
+
+def _strip_heredocs(command: str) -> str:
+    lines = command.split("\n")
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        out.append(line)
+        m = _HEREDOC.search(line)
+        i += 1
+        if not m:
+            continue
+        dash, quoted, delim = m.group(1), m.group(2), m.group(3)
+        end = i
+        while end < len(lines):
+            candidate = lines[end].lstrip("\t") if dash else lines[end]
+            if candidate == delim:
+                break
+            end += 1
+        body = lines[i:end]
+        writes_file = _WRITER.search(line[: m.start()]) and "|" not in line[m.end():]
+        inert = quoted or not any(_SUBST.search(b) for b in body)
+        if not (writes_file and inert):
+            out.extend(body)
+        i = end
+    return "\n".join(out)
+
+
+def _strip_messages(command: str) -> str:
+    if not _MSG_CMD.search(command):
+        return command
+
+    def repl(m: re.Match[str]) -> str:
+        value = m.group(2)
+        if value.startswith('"') and _SUBST.search(value):
+            return m.group(0)  # $(...) inside double quotes still runs
+        return m.group(1) + "''"
+
+    return _MSG_ARG.sub(repl, command)
+
+
 def check(command: str) -> list[str]:
     """Return the reasons a command is dangerous (empty list if it looks fine)."""
-    return [reason for reason, rx in COMPILED if rx.search(command)]
+    text = _strip_messages(_strip_heredocs(command))
+    return [reason for reason, rx in COMPILED if rx.search(text)]
 
 
 # Modes where nobody is reliably watching each command. A dangerous command is

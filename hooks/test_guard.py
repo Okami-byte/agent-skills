@@ -70,6 +70,40 @@ def test_safe_commands_pass():
     assert not flagged, f"wrongly flagged: {flagged}"
 
 
+# Text that only *mentions* dangerous commands: must pass.
+INERT_TEXT = [
+    'git commit -m "Document terraform destroy safety"',
+    "git commit -q -m \"a\" -m 'docker compose down -v removes volumes'",
+    "gh pr create --title 'x' --body 'run terraform destroy to clean up'",
+    "gh pr create --body=\"rollback: git push --force is never used\"",
+    "cat > notes.md <<'EOF'\nUse terraform destroy carefully\nEOF",
+    "cat > notes.md <<EOF\nplain text: rm -rf / is bad\nEOF",
+    "tee -a log.md <<'EOF'\nqm destroy 101 was rejected\nEOF\necho done",
+]
+
+# The same words in places where they still execute: must be flagged.
+LIVE_TEXT = [
+    "bash <<'EOF'\nterraform destroy\nEOF",
+    "cat <<'EOF' | sh\nterraform destroy\nEOF",
+    'ssh host "terraform destroy"',
+    "bash -c 'docker compose down -v'",
+    'git commit -m "$(rm -rf ~)"',
+    "cat > f <<EOF\n$(terraform destroy)\nEOF",
+    'git commit -m "ok" && terraform destroy',
+    "cat > notes.md <<'EOF'\nsafe\nEOF\nterraform destroy",
+]
+
+
+def test_inert_text_passes():
+    flagged = [c for c in INERT_TEXT if guard.check(c)]
+    assert not flagged, f"wrongly flagged: {flagged}"
+
+
+def test_live_text_still_flagged():
+    missed = [c for c in LIVE_TEXT if not guard.check(c)]
+    assert not missed, f"not flagged: {missed}"
+
+
 def test_unattended_modes_deny():
     for mode in ("auto", "bypassPermissions", "dontAsk"):
         assert guard.decide(mode, ["x"])[0] == "deny", mode
@@ -83,6 +117,8 @@ def test_attended_modes_ask():
 if __name__ == "__main__":
     test_dangerous_commands_are_flagged()
     test_safe_commands_pass()
+    test_inert_text_passes()
+    test_live_text_still_flagged()
     test_unattended_modes_deny()
     test_attended_modes_ask()
     print("all guard tests passed")
