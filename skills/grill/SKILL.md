@@ -38,4 +38,4 @@ Give a short summary:
 - **Out of scope**: what was explicitly left out.
 - **Open questions**: anything that is still fuzzy.
 
-Then offer the next step, such as writing a spec (`/dev:spec` once it exists) or starting the work. Save the summary to a file only if the user asks.
+Then offer the next step, such as writing a spec with `/dev:spec` or starting the work. Save the summary to a file only if the user asks.

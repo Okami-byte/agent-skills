@@ -29,8 +29,10 @@ secrets.*
 __pycache__/
 *.py[cod]
 *.egg-info/
-build/
-dist/
+# The leading slash anchors a pattern to the repo root. A bare "build/" would
+# also match skills/build/ and silently drop that skill from the repo.
+/build/
+/dist/
 .venv/
 venv/
 
